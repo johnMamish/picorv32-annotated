@@ -17,43 +17,17 @@
  *
  */
 
-/* verilator lint_off WIDTH */
-/* verilator lint_off PINMISSING */
-/* verilator lint_off CASEOVERLAP */
-/* verilator lint_off CASEINCOMPLETE */
+/**
+ * This copy of picorv32.v (picorv32_simplified.v) has some big portions of the code that aren't
+ * strictly necessary for its operation ripped out so that it's easier to read.
+ * I moved this simplification to a separate file because I wanted the project as a whole to
+ * remain compile-able, even as I annotated.
+ */
 
 `timescale 1 ns / 1 ps
-// `default_nettype none
-// `define DEBUGNETS
-// `define DEBUGREGS
-// `define DEBUGASM
-// `define DEBUG
 
-`ifdef DEBUG
-  `define debug(debug_command) debug_command
-`else
-  `define debug(debug_command)
-`endif
-
-`ifdef FORMAL
-  `define FORMAL_KEEP (* keep *)
-  `define assert(assert_expr) assert(assert_expr)
-`else
-  `ifdef DEBUGNETS
-    `define FORMAL_KEEP (* keep *)
-  `else
-    `define FORMAL_KEEP
-  `endif
-  `define assert(assert_expr) empty_statement
-`endif
-
-// uncomment this for register file in extra module
-// `define PICORV32_REGS picorv32_regs
-
-// this macro can be used to check if the verilog files in your
-// design are read in the correct order.
-`define PICORV32_V
-
+`define debug(debug_command)
+`define FORMAL_KEEP
 
 /***************************************************************
  * picorv32
@@ -120,40 +94,6 @@ module picorv32 #(
 	input      [31:0] irq,
 	output reg [31:0] eoi,
 
-`ifdef RISCV_FORMAL
-	output reg        rvfi_valid,
-	output reg [63:0] rvfi_order,
-	output reg [31:0] rvfi_insn,
-	output reg        rvfi_trap,
-	output reg        rvfi_halt,
-	output reg        rvfi_intr,
-	output reg [ 1:0] rvfi_mode,
-	output reg [ 1:0] rvfi_ixl,
-	output reg [ 4:0] rvfi_rs1_addr,
-	output reg [ 4:0] rvfi_rs2_addr,
-	output reg [31:0] rvfi_rs1_rdata,
-	output reg [31:0] rvfi_rs2_rdata,
-	output reg [ 4:0] rvfi_rd_addr,
-	output reg [31:0] rvfi_rd_wdata,
-	output reg [31:0] rvfi_pc_rdata,
-	output reg [31:0] rvfi_pc_wdata,
-	output reg [31:0] rvfi_mem_addr,
-	output reg [ 3:0] rvfi_mem_rmask,
-	output reg [ 3:0] rvfi_mem_wmask,
-	output reg [31:0] rvfi_mem_rdata,
-	output reg [31:0] rvfi_mem_wdata,
-
-	output reg [63:0] rvfi_csr_mcycle_rmask,
-	output reg [63:0] rvfi_csr_mcycle_wmask,
-	output reg [63:0] rvfi_csr_mcycle_rdata,
-	output reg [63:0] rvfi_csr_mcycle_wdata,
-
-	output reg [63:0] rvfi_csr_minstret_rmask,
-	output reg [63:0] rvfi_csr_minstret_wmask,
-	output reg [63:0] rvfi_csr_minstret_rdata,
-	output reg [63:0] rvfi_csr_minstret_wdata,
-`endif
-
 	// Trace Interface
 	output reg        trace_valid,
 	output reg [35:0] trace_data
@@ -199,62 +139,13 @@ module picorv32 #(
 	reg [31:0] irq_pending;
 	reg [31:0] timer;
 
-`ifndef PICORV32_REGS
 	reg [31:0] cpuregs [0:regfile_size-1];
 
-	integer i;
-	initial begin
-		if (REGS_INIT_ZERO) begin
-			for (i = 0; i < regfile_size; i = i+1)
-				cpuregs[i] = 0;
-		end
-	end
-`endif
-
-	task empty_statement;
-		// This task is used by the `assert directive in non-formal mode to
-		// avoid empty statement (which are unsupported by plain Verilog syntax).
-		begin end
-	endtask
-
-`ifdef DEBUGREGS
-	wire [31:0] dbg_reg_x0  = 0;
-	wire [31:0] dbg_reg_x1  = cpuregs[1];
-	wire [31:0] dbg_reg_x2  = cpuregs[2];
-	wire [31:0] dbg_reg_x3  = cpuregs[3];
-	wire [31:0] dbg_reg_x4  = cpuregs[4];
-	wire [31:0] dbg_reg_x5  = cpuregs[5];
-	wire [31:0] dbg_reg_x6  = cpuregs[6];
-	wire [31:0] dbg_reg_x7  = cpuregs[7];
-	wire [31:0] dbg_reg_x8  = cpuregs[8];
-	wire [31:0] dbg_reg_x9  = cpuregs[9];
-	wire [31:0] dbg_reg_x10 = cpuregs[10];
-	wire [31:0] dbg_reg_x11 = cpuregs[11];
-	wire [31:0] dbg_reg_x12 = cpuregs[12];
-	wire [31:0] dbg_reg_x13 = cpuregs[13];
-	wire [31:0] dbg_reg_x14 = cpuregs[14];
-	wire [31:0] dbg_reg_x15 = cpuregs[15];
-	wire [31:0] dbg_reg_x16 = cpuregs[16];
-	wire [31:0] dbg_reg_x17 = cpuregs[17];
-	wire [31:0] dbg_reg_x18 = cpuregs[18];
-	wire [31:0] dbg_reg_x19 = cpuregs[19];
-	wire [31:0] dbg_reg_x20 = cpuregs[20];
-	wire [31:0] dbg_reg_x21 = cpuregs[21];
-	wire [31:0] dbg_reg_x22 = cpuregs[22];
-	wire [31:0] dbg_reg_x23 = cpuregs[23];
-	wire [31:0] dbg_reg_x24 = cpuregs[24];
-	wire [31:0] dbg_reg_x25 = cpuregs[25];
-	wire [31:0] dbg_reg_x26 = cpuregs[26];
-	wire [31:0] dbg_reg_x27 = cpuregs[27];
-	wire [31:0] dbg_reg_x28 = cpuregs[28];
-	wire [31:0] dbg_reg_x29 = cpuregs[29];
-	wire [31:0] dbg_reg_x30 = cpuregs[30];
-	wire [31:0] dbg_reg_x31 = cpuregs[31];
-`endif
-
+        ////////////////////////////////////////////////
 	// Internal PCPI Cores
-
-	wire        pcpi_mul_wr;
+        // John: "PCPI" refers to the picorv32-specific "Pico Co-Processor Interface" extension.
+        //       More info about this can be found in the README.md file.
+        wire        pcpi_mul_wr;
 	wire [31:0] pcpi_mul_rd;
 	wire        pcpi_mul_wait;
 	wire        pcpi_mul_ready;
@@ -345,9 +236,8 @@ module picorv32 #(
 		endcase
 	end
 
-
+        ////////////////////////////////////////////////
 	// Memory Interface
-
 	reg [1:0] mem_state;
 	reg [1:0] mem_wordsize;
 	reg [31:0] mem_rdata_word;
@@ -398,6 +288,11 @@ module picorv32 #(
 		end
 	end
 
+        ////////////////////////////////////////////////////////////////////////////////////////////
+        // John: this code properly sets wstrb (a one-hot 4-wide bus that determines which byte
+        //       memory should write) when writes narrower than 32-bits are being done.
+        //       mem_wordsize is 0, 1, or 2, which mean "word", "halfword", and "byte", respectively
+        //       mem_rdata_word contains the read data realigned to the right.
 	always @* begin
 		(* full_case *)
 		case (mem_wordsize)
@@ -542,6 +437,7 @@ module picorv32 #(
 			endcase
 		end
 	end
+
 
 	always @(posedge clk) begin
 		if (resetn && !trap) begin
@@ -1161,9 +1057,8 @@ module picorv32 #(
 		end
 	end
 
-
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 	// Main State Machine
-
 	localparam cpu_state_trap   = 8'b10000000;
 	localparam cpu_state_fetch  = 8'b01000000;
 	localparam cpu_state_ld_rs1 = 8'b00100000;
@@ -1178,6 +1073,8 @@ module picorv32 #(
 
 	`FORMAL_KEEP reg [127:0] dbg_ascii_state;
 
+    // John: this is a cool little debugging technique: it gives you a textual representation of
+    //       some internal system state to view in gtkwave.
 	always @* begin
 		dbg_ascii_state = "";
 		if (cpu_state == cpu_state_trap)   dbg_ascii_state = "trap";
@@ -1194,8 +1091,25 @@ module picorv32 #(
 	reg set_mem_do_rdata;
 	reg set_mem_do_wdata;
 
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // what do all these latched_xxxx variables do??
+
+    // John: latched_store indicates when the previous instruction
 	reg latched_store;
 	reg latched_stalu;
+
+    // John: latched_branch is valid only during the instruction fetch state. It indicates when the
+    //       previous instruction resulted in a taken branch. An instruction sets latched_branch
+    //       when one of the following happens:
+    //         - jalr was executed
+    //         -
+    //
+    //       During the instruction fetch state, latched_branch is unconditionally cleared.
+    //       If the CPU is stuck in the fetch state for multiple cycles because of a slow
+    //       instruction fetch, it's ok that latched_branch is set for the first of those
+    //       cycles but cleared for the subsequent cycles. reg_pc will take on the newer
+    //       pc value.
 	reg latched_branch;
 	reg latched_compr;
 	reg latched_trace;
@@ -1221,6 +1135,14 @@ module picorv32 #(
 	reg [31:0] alu_shl, alu_shr;
 	reg alu_eq, alu_ltu, alu_lts;
 
+    // John: ALU implementation is basically here.
+    //       Generate statement is to decide whether the ALU outputs should be wires, or if they
+    //       should be pipelined to increase Fmax.
+    //
+    //       There's also the TWO_CYCLE_COMPARE option, which, if TWO_CYCLE_ALU isn't enabled, still
+    //       latches the outputs of the alu's comparison and equals operations.
+    //       It does this by choosing between alu_out_0 and alu_out_0_q (a latched version of
+    //       alu_out_0) wherever something accesses alu_out_0.
 	generate if (TWO_CYCLE_ALU) begin
 		always @(posedge clk) begin
 			alu_add_sub <= instr_sub ? reg_op1 - reg_op2 : reg_op1 + reg_op2;
@@ -1241,8 +1163,16 @@ module picorv32 #(
 		end
 	end endgenerate
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // mux that chooses ALU output value from calculated values
+    //     alu_out_0 is a boolean; its value is chosen from among {"equals", "less-than unsigned",
+    //     "less-than signed"}.
+    //     alu_out is a 32-bit number; its value is chosen from among {"adder output", "alu_out_0",
+    //     "xor output", "or output", "and output", "shifter output"}.
 	always @* begin
 		alu_out_0 = 'bx;
+        // parallel_case and full_case are directives to the synthesizer regarding the case statement.
+        // these might be directives to the formal verification tools, as well.
 		(* parallel_case, full_case *)
 		case (1'b1)
 			instr_beq:
@@ -1266,7 +1196,7 @@ module picorv32 #(
 				alu_out = alu_add_sub;
 			is_compare:
 				alu_out = alu_out_0;
-			instr_xori || instr_xor:
+			instr_xori || instr_xor:              // "xori" -> "xor immediate"
 				alu_out = reg_op1 ^ reg_op2;
 			instr_ori || instr_or:
 				alu_out = reg_op1 | reg_op2;
@@ -1277,11 +1207,6 @@ module picorv32 #(
 			BARREL_SHIFTER && (instr_srl || instr_srli || instr_sra || instr_srai):
 				alu_out = alu_shr;
 		endcase
-
-`ifdef RISCV_FORMAL_BLACKBOX_ALU
-		alu_out_0 = $anyseq;
-		alu_out = $anyseq;
-`endif
 	end
 
 	reg clear_prefetched_high_word_q;
@@ -1328,35 +1253,25 @@ module picorv32 #(
 		end
 	end
 
+        ////////////////////////////////////////////////////////////////////////////////////////////
+        // Register file access
+        // John: This code provides an "interface" for the registers. Instead of spending FFs in
+        //       LUTs to make the register files (could be up to 1024 LUTs), this structured way of
+        //       accessing the register file gives us an option to use BRAM for the registers.
 `ifndef PICORV32_REGS
 	always @(posedge clk) begin
 		if (resetn && cpuregs_write && latched_rd)
-`ifdef PICORV32_TESTBUG_001
-			cpuregs[latched_rd ^ 1] <= cpuregs_wrdata;
-`elsif PICORV32_TESTBUG_002
-			cpuregs[latched_rd] <= cpuregs_wrdata ^ 1;
-`else
 			cpuregs[latched_rd] <= cpuregs_wrdata;
-`endif
 	end
 
 	always @* begin
 		decoded_rs = 'bx;
 		if (ENABLE_REGS_DUALPORT) begin
-`ifndef RISCV_FORMAL_BLACKBOX_REGS
 			cpuregs_rs1 = decoded_rs1 ? cpuregs[decoded_rs1] : 0;
 			cpuregs_rs2 = decoded_rs2 ? cpuregs[decoded_rs2] : 0;
-`else
-			cpuregs_rs1 = decoded_rs1 ? $anyseq : 0;
-			cpuregs_rs2 = decoded_rs2 ? $anyseq : 0;
-`endif
 		end else begin
 			decoded_rs = (cpu_state == cpu_state_ld_rs2) ? decoded_rs2 : decoded_rs1;
-`ifndef RISCV_FORMAL_BLACKBOX_REGS
 			cpuregs_rs1 = decoded_rs ? cpuregs[decoded_rs] : 0;
-`else
-			cpuregs_rs1 = decoded_rs ? $anyseq : 0;
-`endif
 			cpuregs_rs2 = cpuregs_rs1;
 		end
 	end
@@ -1569,7 +1484,7 @@ module picorv32 #(
 						cpu_state <= cpu_state_ld_rs1;
 					end
 				end
-			end
+			end // end case cpu_state_fetch
 
 			cpu_state_ld_rs1: begin
 				reg_op1 <= 'bx;
