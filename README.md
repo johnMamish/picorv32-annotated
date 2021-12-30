@@ -1,3 +1,6 @@
+PicoRV32-annotated Fork
+======================================
+I'm trying to spend more time reading open source code written by exceptionally experienced people. A natural part of reading code is annotating it, modifying it, and running it. This repo is here to let me do that with Claire Wolf's PicoRV32.
 
 PicoRV32 - A Size-Optimized RISC-V CPU
 ======================================
@@ -735,4 +738,3 @@ See `make area` in [scripts/vivado/](scripts/vivado/).
 | PicoRV32 (small)   |        761 |             48 |             442 |
 | PicoRV32 (regular) |        917 |             48 |             583 |
 | PicoRV32 (large)   |       2019 |             88 |            1085 |
-
